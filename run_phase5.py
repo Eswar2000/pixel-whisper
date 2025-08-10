@@ -15,7 +15,7 @@ if __name__ == "__main__":
     cover_image = sys.argv[1]
     stego_image = sys.argv[2]
 
-    chi_sq_diff = run_phase5(cover_image, stego_image)
+    chi_sq_diff = run_chi_square_test(cover_image, stego_image)
 
     for ch, summary in chi_sq_diff.items():
         print(f"{ch}: {summary}")
