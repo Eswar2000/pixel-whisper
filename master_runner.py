@@ -1,9 +1,8 @@
 import os
 import csv
-import subprocess
 import re
 import sys
-import run_phase1, run_phase2, run_phase3, run_phase4_1, run_phase4_2, run_phase4_3, run_phase4_4
+import run_phase1, run_phase2, run_phase3, run_phase4_1, run_phase4_2, run_phase4_3, run_phase4_4, run_phase5
 
 # Regex to match all channels from chi-square output
 CHI_PATTERN = re.compile(
@@ -42,13 +41,11 @@ def get_next_metrics_filename():
 
 OUTPUT_CSV = get_next_metrics_filename()
 
-def run_command(cmd):
-    """Run shell command and return stdout."""
-    result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"[!] Command failed: {cmd}")
-        print(result.stderr)
-    return result.stdout.strip()
+def format_detectability(status, diff):
+    if "Equal" in status or diff == 0 or diff == "" or diff is None:
+        return status  # Just return status as is
+    else:
+        return f"{status} by {diff}"
 
 def main(input_src = INPUT_DIR):
     # Prepare CSV
@@ -78,29 +75,20 @@ def main(input_src = INPUT_DIR):
 
                 # Run chi-square for this cover and stego
                 stego_path = os.path.join(BASE_DIR, "images", "output", stego_filename)
-                chi_output = run_command(f"python run_phase5.py {cover_path} {stego_path}")
+                chi_data = run_phase5.run_chi_square_test(cover_path, stego_path)
 
                 # Extract PSNR, SSIM, MSE, entropy diff from embedding runner output
                 psnr, ssim, mse, entropy_diff = round(metric_output['PSNR'], 4), round(metric_output['SSIM'], 4), round(metric_output['MSE'], 4), round(metric_output['Entropy Diff'], 4)
 
-                # Parse chi-square output
-                chi_data = {"Blue": {}, "Green": {}, "Red": {}}
-                for line in chi_output.splitlines():
-                    m = CHI_PATTERN.search(line)
-                    if m:
-                        color, img1_val, img2_val, detect_msg = m.groups()
-                        chi_data[color] = {
-                            "Image1": float(img1_val),
-                            "Image2": float(img2_val),
-                            "Detectability": detect_msg.replace("Image 2 ", "")
-                        }
-
                 writer.writerow([
                     cover_image, phase_runner[0],
                     psnr, ssim, mse, entropy_diff,
-                    chi_data["Blue"].get("Image1"), chi_data["Blue"].get("Image2"), chi_data["Blue"].get("Detectability"),
-                    chi_data["Green"].get("Image1"), chi_data["Green"].get("Image2"), chi_data["Green"].get("Detectability"),
-                    chi_data["Red"].get("Image1"), chi_data["Red"].get("Image2"), chi_data["Red"].get("Detectability"),
+                    chi_data["Blue"].get("image1"), chi_data["Blue"].get("image2"), 
+                        format_detectability(chi_data["Blue"].get("status", ""), chi_data["Blue"].get("difference", "")),
+                    chi_data["Green"].get("image1"), chi_data["Green"].get("image2"), 
+                        format_detectability(chi_data["Green"].get("status", ""), chi_data["Green"].get("difference", "")),
+                    chi_data["Red"].get("image1"), chi_data["Red"].get("image2"), 
+                        format_detectability(chi_data["Red"].get("status", ""), chi_data["Red"].get("difference", "")),
                 ])
 
 if __name__ == "__main__":

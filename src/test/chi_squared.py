@@ -71,19 +71,30 @@ def compare_chi_square_channels(chi_sq_1, chi_sq_2):
         val1 = chi_sq_1.get(ch, None)
         val2 = chi_sq_2.get(ch, None)
         if val1 is None or val2 is None:
-            comparison_dict[ch] = "N/A (missing value)"
+            comparison_dict[ch] = {
+                "image1": None,
+                "image2": None,
+                "status": "N/A (missing value)",
+                "difference": None
+            }
             continue
         
         diff = val2 - val1
-        if abs(diff) < epsilon:
-            status = "Equal detectability"
-        elif diff < 0:
-            status = f"Image 2 less detectable by {abs(diff):.2f}"
-        else:
-            status = f"Image 2 more detectable by {diff:.2f}"
+        abs_diff = abs(diff)
         
-        comparison_dict[ch] = (
-            f"Image 1: {val1:.2f}, Image 2: {val2:.2f} => {status}"
-        )
+        if abs_diff < epsilon:
+            status = "equal"
+            abs_diff = 0.0
+        elif diff < 0:
+            status = "less detectable"
+        else:
+            status = "more detectable"
+        
+        comparison_dict[ch] = {
+            "image1": val1,
+            "image2": val2,
+            "status": status,
+            "difference": abs_diff
+        }
     
     return comparison_dict
