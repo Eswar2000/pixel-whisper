@@ -3,6 +3,7 @@ import csv
 import subprocess
 import re
 import sys
+import run_phase1, run_phase2, run_phase3, run_phase4_1, run_phase4_2, run_phase4_3, run_phase4_4
 
 # Regex to match all channels from chi-square output
 CHI_PATTERN = re.compile(
@@ -11,13 +12,13 @@ CHI_PATTERN = re.compile(
 
 # List of runner scripts for each phase
 PHASE_RUNNERS = [
-    "run_phase1.py",
-    "run_phase2.py",
-    "run_phase3.py",
-    "run_phase4_1.py",
-    "run_phase4_2.py",
-    "run_phase4_3.py",
-    "run_phase4_4.py",
+    ("phase1", run_phase1.run_phase1),
+    ("phase2", run_phase2.run_phase2),
+    ("phase3", run_phase3.run_phase3),
+    ("phase4_1", run_phase4_1.run_phase4_1),
+    ("phase4_2", run_phase4_2.run_phase4_2),
+    ("phase4_3", run_phase4_3.run_phase4_3),
+    ("phase4_4", run_phase4_4.run_phase4_4)
 ]
 
 # Paths
@@ -68,10 +69,10 @@ def main(input_src = INPUT_DIR):
             cover_path = os.path.join(input_src, cover_image)
 
             for phase_runner in PHASE_RUNNERS:
-                print(f"[*] Running {phase_runner} on {cover_image}...")
-                run_command(f"python {phase_runner} {cover_path}")
+                print(f"[*] Running {phase_runner[0]} on {cover_image}...")
+                metric_output = phase_runner[1](cover_path)
 
-                phase_name = phase_runner.replace("run_", "").replace(".py", "")
+                phase_name = phase_runner[0]
                 image_base_name = os.path.basename(cover_path).replace(".png", "").replace(".jpg", "").replace(".jpeg", "")
                 stego_filename = f"{image_base_name}_{phase_name}.png"
 
@@ -80,9 +81,7 @@ def main(input_src = INPUT_DIR):
                 chi_output = run_command(f"python run_phase5.py {cover_path} {stego_path}")
 
                 # Extract PSNR, SSIM, MSE, entropy diff from embedding runner output
-                # (Assumes embedding runner writes metrics.json or stdout)
-                # For now, dummy placeholders
-                psnr, ssim, mse, entropy_diff = 0, 0, 0, 0
+                psnr, ssim, mse, entropy_diff = round(metric_output['PSNR'], 4), round(metric_output['SSIM'], 4), round(metric_output['MSE'], 4), round(metric_output['Entropy Diff'], 4)
 
                 # Parse chi-square output
                 chi_data = {"Blue": {}, "Green": {}, "Red": {}}
@@ -97,7 +96,7 @@ def main(input_src = INPUT_DIR):
                         }
 
                 writer.writerow([
-                    cover_image, phase_runner.replace("runner_", "").replace(".py", ""),
+                    cover_image, phase_runner[0],
                     psnr, ssim, mse, entropy_diff,
                     chi_data["Blue"].get("Image1"), chi_data["Blue"].get("Image2"), chi_data["Blue"].get("Detectability"),
                     chi_data["Green"].get("Image1"), chi_data["Green"].get("Image2"), chi_data["Green"].get("Detectability"),
@@ -109,4 +108,5 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python master_runner.py <image_src_path>")
         main()
-    main(sys.argv[1])
+    else:
+        main(sys.argv[1])

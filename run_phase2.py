@@ -11,13 +11,7 @@ def bits_to_text(bits):
     chars = [chr(int(''.join(str(bit) for bit in bits[i:i+8]), 2)) for i in range(0, len(bits), 8)]
     return ''.join(chars)
 
-if __name__ == "__main__":
-    # Expect the cover image path as an argument
-    if len(sys.argv) != 2:
-        print("Usage: python runner_phase2.py <cover_image_path>")
-        sys.exit(1)
-
-    cover_img_path = sys.argv[1]
+def run_phase2(cover_img_path, debug = False):
     output_dir = os.path.join("images", "output")
 
     img_name = os.path.splitext(os.path.basename(cover_img_path))[0]
@@ -29,21 +23,36 @@ if __name__ == "__main__":
     encrypted_bits = chaotic_encrypt(message_bits, x0=0.73456, r=3.6125)
 
     # Embed encrypted bits
-    print("[*] Embedding message...")
+    if debug:
+        print("[*] Embedding message...")
     metrics = embed_message(cover_img_path, ''.join(str(b) for b in encrypted_bits), stego_img)
-    print("[+] Metrics:")
-    for k, v in metrics.items():
-        if isinstance(v, float):
-            print(f"    {k}: {v:.4f}")
+    if debug:
+        print("[+] Metrics:")
+        for k, v in metrics.items():
+            if isinstance(v, float):
+                print(f"    {k}: {v:.4f}")
         else:
             print(f"    {k}: {v}")
 
     # Extract bits back
-    print("[*] Extracting message...")
+    if debug:
+        print("[*] Extracting message...")
     extracted_bits_str = extract_message(stego_img, len(encrypted_bits))
     extracted_bits = np.array([int(b) for b in extracted_bits_str], dtype=np.uint8)
 
     # Chaotic decryption
     decrypted_bits = chaotic_decrypt(extracted_bits, x0=0.73456, r=3.6125)
     recovered_message = bits_to_text(decrypted_bits)
-    print(f"[+] Extracted message: {recovered_message}")
+    if debug:
+        print(f"[+] Extracted message: {recovered_message}")
+    return metrics
+
+
+if __name__ == "__main__":
+    # Expect the cover image path as an argument
+    if len(sys.argv) != 2:
+        print("Usage: python runner_phase2.py <cover_image_path>")
+        sys.exit(1)
+
+    cover_img_path = sys.argv[1]
+    run_phase2(cover_img_path, debug=True)

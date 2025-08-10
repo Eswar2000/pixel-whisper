@@ -103,7 +103,6 @@ def embed_message(image_path, message, output_path, seed="defaultpassword"):
     # Save stego image
     stego_img = Image.fromarray(pixels)
     stego_img.save(output_path)
-    print(f"[+] Saved stego image at {output_path}")
 
     # Calculate metrics
     original = np.array(Image.open(image_path))
