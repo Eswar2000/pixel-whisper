@@ -55,7 +55,8 @@ def main(input_src = INPUT_DIR):
             "Cover Image", "Phase", "PSNR", "SSIM", "MSE", "Entropy Diff",
             "Blue_Cover", "Blue_Stego", "Blue_Detect",
             "Green_Cover", "Green_Stego", "Green_Detect",
-            "Red_Cover", "Red_Stego", "Red_Detect"
+            "Red_Cover", "Red_Stego", "Red_Detect",
+            "NCC", "Noise Diff", "Histogram Dist", "Edge Diff", "Skewness Diff", "Kurtosis Diff"
         ])
 
         # Loop over all cover images
@@ -75,7 +76,7 @@ def main(input_src = INPUT_DIR):
 
                 # Run chi-square for this cover and stego
                 stego_path = os.path.join(BASE_DIR, "images", "output", stego_filename)
-                chi_data = run_phase5.run_chi_square_test(cover_path, stego_path)
+                test_metrics = run_phase5.run_all_metrics(cover_path, stego_path)
 
                 # Extract PSNR, SSIM, MSE, entropy diff from embedding runner output
                 psnr, ssim, mse, entropy_diff = round(metric_output['PSNR'], 4), round(metric_output['SSIM'], 4), round(metric_output['MSE'], 4), round(metric_output['Entropy Diff'], 4)
@@ -83,12 +84,13 @@ def main(input_src = INPUT_DIR):
                 writer.writerow([
                     cover_image, phase_runner[0],
                     psnr, ssim, mse, entropy_diff,
-                    chi_data["Blue"].get("image1"), chi_data["Blue"].get("image2"), 
-                        format_detectability(chi_data["Blue"].get("status", ""), chi_data["Blue"].get("difference", "")),
-                    chi_data["Green"].get("image1"), chi_data["Green"].get("image2"), 
-                        format_detectability(chi_data["Green"].get("status", ""), chi_data["Green"].get("difference", "")),
-                    chi_data["Red"].get("image1"), chi_data["Red"].get("image2"), 
-                        format_detectability(chi_data["Red"].get("status", ""), chi_data["Red"].get("difference", "")),
+                    test_metrics["chi_square"]["Blue"].get("image1"), test_metrics["chi_square"]["Blue"].get("image2"), 
+                        format_detectability(test_metrics["chi_square"]["Blue"].get("status", ""), test_metrics["chi_square"]["Blue"].get("difference", "")),
+                    test_metrics["chi_square"]["Green"].get("image1"), test_metrics["chi_square"]["Green"].get("image2"), 
+                        format_detectability(test_metrics["chi_square"]["Green"].get("status", ""), test_metrics["chi_square"]["Green"].get("difference", "")),
+                    test_metrics["chi_square"]["Red"].get("image1"), test_metrics["chi_square"]["Red"].get("image2"), 
+                        format_detectability(test_metrics["chi_square"]["Red"].get("status", ""), test_metrics["chi_square"]["Red"].get("difference", "")),
+                    test_metrics["ncc"], test_metrics["noise_diff"], test_metrics["hist_dist"], test_metrics["edge_diff"], test_metrics["skew_diff"], test_metrics["kurt_diff"]
                 ])
 
 if __name__ == "__main__":
