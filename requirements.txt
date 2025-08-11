@@ -8,3 +8,5 @@ tqdm
 seaborn
 pytest
 requests
+pandas
+scikit-learn
