@@ -2,7 +2,7 @@ import os
 import csv
 import re
 import sys
-import run_phase1, run_phase2, run_phase3, run_phase4_1, run_phase4_2, run_phase4_3, run_phase4_4, run_phase5
+import run_phase1, run_phase2, run_phase3, run_phase4_1, run_phase4_2, run_phase4_3, run_phase4_4, run_phase4_5, run_phase5
 
 # Regex to match all channels from chi-square output
 CHI_PATTERN = re.compile(
@@ -17,7 +17,8 @@ PHASE_RUNNERS = [
     ("phase4_1", run_phase4_1.run_phase4_1),
     ("phase4_2", run_phase4_2.run_phase4_2),
     ("phase4_3", run_phase4_3.run_phase4_3),
-    ("phase4_4", run_phase4_4.run_phase4_4)
+    ("phase4_4", run_phase4_4.run_phase4_4),
+    ("phase4_5", run_phase4_5.run_phase_4_5),
 ]
 
 # Paths

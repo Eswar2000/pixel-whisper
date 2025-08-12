@@ -39,6 +39,7 @@ def compute_algorithm_summary(df, threshold=Decimal('0.2')):
         'Detection rate (%)': 100 * group['Above stego threshold?'].mean(),
         'Avg Fusion': float(sum(group['Fusion (mean)']) / len(group)),
         'Max Fusion': float(max(group['Fusion (mean)'])),
+        'Min Fusion': float(min(group['Fusion (mean)'])),
         'Avg Secret Size (bytes)': group['Secret message size in bytes (ignore for clean files)']
             .replace('?', 0)
             .astype(float).mean()
@@ -49,7 +50,7 @@ def compute_algorithm_summary(df, threshold=Decimal('0.2')):
 # Main runner
 if __name__ == "__main__":
     # Replace with your file path
-    csv_file = "images/steganalysis1_4.csv"
+    csv_file = "results/steganalysis1_4.csv"
     
     df = load_high_precision_csv(csv_file)
     summary_df = compute_algorithm_summary(df)
