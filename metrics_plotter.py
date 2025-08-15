@@ -1,89 +1,113 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import glob
 import os
+import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+from math import pi
+import glob
 from sklearn.preprocessing import MinMaxScaler
 
-# === CONFIG ===
-CSV_FOLDER = "summary"  # folder with your CSV files
-OUTPUT_FOLDER = "results"
-os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+METRICS_DIR = "summary"
+STEGANALYSIS_DIR = "results"
+PLOTS_DIR = "images/plot"
 
-# === LOAD ALL CSVs ===
-csv_files = glob.glob(os.path.join(CSV_FOLDER, "*.csv"))
-if not csv_files:
-    raise FileNotFoundError(f"No CSV files found in {CSV_FOLDER}")
+def read_csv_files(dir):
+    csv_files = glob.glob(os.path.join(dir, "*.csv"))
+    if not csv_files:
+        raise ValueError(f"No CSV files found in directory: {dir}")
+    
+    df_list = []
+    for file in csv_files:
+        df = pd.read_csv(file)
+        df_list.append(df)
 
-df_list = [pd.read_csv(f) for f in csv_files]
-df = pd.concat(df_list, ignore_index=True)
+    combined_df = pd.concat(df_list, ignore_index=True)
+    return combined_df
 
-# === 1. BAR PLOTS: PSNR, SSIM, MSE, Entropy Diff ===
-metrics = ["PSNR", "SSIM", "MSE", "Entropy Diff"]
-for metric in metrics:
-    plt.figure(figsize=(10, 6))
-    sns.barplot(x="Phase", y=metric, data=df, ci=None, estimator=np.mean)
-    plt.title(f"{metric} Comparison Across Phases (mean over images)")
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.savefig(os.path.join(OUTPUT_FOLDER, f"{metric}_barplot.png"))
-    plt.close()
+def merge_dataframes(df1, df2):
+    df1['File name'] = df1['Cover Image'].str.replace('.jpg', '', regex=False) + '_' + df1['Phase'] + '.png'
+    merged_df = pd.merge(df1, df2, on='File name', how='inner')
+    return merged_df
 
-# === 2. SCATTER PLOT: PSNR vs Entropy Diff ===
-plt.figure(figsize=(8, 6))
-sns.scatterplot(x="Entropy Diff", y="PSNR", hue="Phase", data=df, s=80)
-plt.title("PSNR vs Entropy Difference by Phase")
-plt.tight_layout()
-plt.savefig(os.path.join(OUTPUT_FOLDER, "PSNR_vs_EntropyDiff_scatter.png"))
-plt.close()
+def prepare_ablation_table(df, group_col='Phase', exclude_cols=['Image']):
+    df_abl = df.copy()
+    # Get metric columns (all numeric columns except excluded ones)
+    metric_cols = [col for col in df_abl.columns if col not in exclude_cols and pd.api.types.is_numeric_dtype(df_abl[col])]
 
-# === 3. RADAR PLOTS ===
-def radar_plot(data, metrics, title, save_path, color="red"):
-    labels = metrics
-    num_vars = len(labels)
+    # Calculate mean and std for each metric grouped by algorithm
+    mean_df = df_abl.groupby(group_col)[metric_cols].mean().round(5)
+    std_df = df_abl.groupby(group_col)[metric_cols].std().round(6)
+    
+    # Create formatted table with mean ± std
+    ablation_table = pd.DataFrame()
+    for col in metric_cols:
+        ablation_table[f"{col}"] = mean_df[col].astype(str) + " ± " + std_df[col].astype(str)
+    
+    # Reset index to make algorithm a column
+    ablation_table = ablation_table.reset_index()
+    
+    return ablation_table
 
-    angles = np.linspace(0, 2 * np.pi, num_vars, endpoint=False).tolist()
-    data = np.concatenate((data, [data[0]]))
-    angles += angles[:1]
+def prepare_radar_plot(df, cols, index='Phase'):
+    radar_df = df.copy()
+    radar_df = radar_df[[index] + cols]
 
-    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
-    ax.plot(angles, data, color=color, linewidth=2)
-    ax.fill(angles, data, color=color, alpha=0.25)
+    mean_df = radar_df.groupby(index)[cols].mean()
+
+    normalized_df = (mean_df - mean_df.min()) / (mean_df.max() - mean_df.min())
+    categories = normalized_df.columns.tolist()
+    N = len(categories)
+
+    # Angles for axes (one per variable)
+    angles = np.linspace(0, 2 * np.pi, N, endpoint=False).tolist()
+    angles += angles[:1]  # complete the loop
+
+    # --- Step 4: Plot ---
+    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
+
+    # Plot each algorithm
+    for idx, row in normalized_df.iterrows():
+        values = row.tolist()
+        values += values[:1]  # close the loop
+        ax.plot(angles, values, label=idx)
+        ax.fill(angles, values, alpha=0.1)
+
+    # Set up the radar chart
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(labels)
-    plt.title(title)
-    plt.savefig(save_path)
-    plt.close()
+    ax.set_xticklabels(categories, fontsize=10)
 
-metrics_for_radar = ["PSNR", "SSIM", "MSE", "Entropy Diff"]
+    # Title and legend
+    ax.set_title('Steganography Metric Comparison', fontsize=14, pad=20)
+    ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1))
 
-# Raw value radar plots
-for phase in df["Phase"].unique():
-    phase_df = df[df["Phase"] == phase]
-    mean_values = [phase_df[m].mean() for m in metrics_for_radar]
-    radar_plot(
-        mean_values,
-        metrics_for_radar,
-        f"Radar Plot (Raw) - {phase}",
-        os.path.join(OUTPUT_FOLDER, f"Radar_Raw_{phase}.png"),
-        color="red"
-    )
+    plt.tight_layout()
 
-# Normalized radar plots
-scaler = MinMaxScaler()
-df_norm = df.copy()
-df_norm[metrics_for_radar] = scaler.fit_transform(df_norm[metrics_for_radar])
+    plt.savefig(os.path.join(PLOTS_DIR, 'steganography_metric_comparison.png'), dpi=300, bbox_inches='tight')
+    plt.close(fig)
 
-for phase in df_norm["Phase"].unique():
-    phase_df = df_norm[df_norm["Phase"] == phase]
-    mean_values = [phase_df[m].mean() for m in metrics_for_radar]
-    radar_plot(
-        mean_values,
-        metrics_for_radar,
-        f"Radar Plot (Normalized) - {phase}",
-        os.path.join(OUTPUT_FOLDER, f"Radar_Normalized_{phase}.png"),
-        color="blue"
-    )
+if __name__ == "__main__":
+    metric_df_cols = ['Cover Image', 'Phase', 'PSNR', 'SSIM', 'MSE', 'Entropy Diff', 'NCC', 'Noise Diff', 'Histogram Dist', 'Edge Diff', 'Skewness Diff', 'Kurtosis Diff']
+    metrics_df = read_csv_files(METRICS_DIR)
+    steganalysis_df_cols = ['Primary Sets', 'Chi Square', 'Sample Pairs', 'RS analysis']
+    steganalysis_df = read_csv_files(STEGANALYSIS_DIR)
 
-print(f"[+] Plots saved in: {OUTPUT_FOLDER}")
+    print(f"Shape of Metrics Dataframe: {metrics_df.shape}")
+    print(f"Shape of Steganalysis Dataframe: {steganalysis_df.shape}")
+
+    df = merge_dataframes(metrics_df, steganalysis_df)
+    print(f"Shape of Merged Dataframe: {df.shape}")
+
+    df_cols = metric_df_cols + steganalysis_df_cols
+    df = df[df_cols]
+
+    ablation_table = prepare_ablation_table(df)
+
+    print(f"Final Dataframe Shape: {ablation_table.shape}")
+    quality_metric_cols = ['Phase', 'PSNR', 'SSIM', 'MSE', 'Entropy Diff']
+    stat_similarity_cols = ['Phase', 'NCC', 'Noise Diff', 'Histogram Dist', 'Edge Diff', 'Skewness Diff', 'Kurtosis Diff']
+    steg_cols = ['Phase', 'Primary Sets', 'Chi Square', 'Sample Pairs', 'RS analysis']
+    
+    print(f"---------------- Quality Metrics ----------------\n{ablation_table[quality_metric_cols]}")
+    print(f"---------------- Statistical Similarity Metrics ----------------\n{ablation_table[stat_similarity_cols]}")
+    print(f"---------------- Steganalysis Metrics ----------------\n{ablation_table[steg_cols]}")
+
+    prepare_radar_plot(df, cols=['PSNR', 'Entropy Diff', 'Histogram Dist', 'Edge Diff', 'Chi Square', 'RS analysis'])
