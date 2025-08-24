@@ -1,6 +1,7 @@
 import cv2
 from io import BytesIO
 from PIL import Image
+from skimage.util import random_noise
 import numpy as np
 
 def jpeg_compression(img: np.ndarray, quality: int = 85) -> np.ndarray:
@@ -24,6 +25,27 @@ def median_filter(img: np.ndarray, ksize: int = 3) -> np.ndarray:
     """Apply median filtering."""
     return cv2.medianBlur(img, ksize)
 
+def salt_and_pepper_noise(img, amount=0.01):
+    noisy = random_noise(img, mode='s&p', amount=amount)
+    noisy = np.array(255 * noisy, dtype=np.uint8)
+    return noisy
+
+def speckle_noise(img):
+    noisy = random_noise(img, mode='speckle')
+    noisy = np.array(255 * noisy, dtype=np.uint8)
+    return noisy
+
+def motion_blur(img, kernel_size=9):
+    kernel = np.zeros((kernel_size, kernel_size))
+    kernel[int((kernel_size-1)/2), :] = np.ones(kernel_size)
+    kernel = kernel / kernel_size
+    return cv2.filter2D(img, -1, kernel)
+
+def histogram_equalization(img):
+    img_yuv = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
+    img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
+    return cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)
+
 def bilateral_filter(img: np.ndarray, d: int = 5, sigmaColor: float = 75, sigmaSpace: float = 75) -> np.ndarray:
     return cv2.bilateralFilter(img, d, sigmaColor, sigmaSpace)
 
@@ -35,8 +57,6 @@ def gamma_correction(img: np.ndarray, gamma: float = 0.9) -> np.ndarray:
     inv_gamma = 1.0 / gamma
     table = np.array([(i/255.0) ** inv_gamma * 255 for i in np.arange(256)]).astype("uint8")
     return cv2.LUT(img, table)
-
-import numpy as np
 
 def string_ber(original: str, recovered: str, encoding="utf-8") -> float:
     """
