@@ -84,6 +84,35 @@ def prepare_radar_plot(df, cols, index='Phase'):
     plt.savefig(os.path.join(PLOTS_DIR, 'steganography_metric_comparison.png'), dpi=300, bbox_inches='tight')
     plt.close(fig)
 
+def prepare_attack_metric_comparison(dir, distinct_cols = ['image_name', 'algorithm']):
+    df = read_csv_files(dir)
+    df.drop_duplicates(distinct_cols, inplace=True)
+    metric_cols = [col for col in df.columns if col not in distinct_cols]
+
+    # Calculate mean and std for each metric grouped by algorithm
+    mean_df = df.groupby(['algorithm'])[metric_cols].mean().round(5)
+    std_df = df.groupby(['algorithm'])[metric_cols].std().round(5)
+
+    # Create formatted table with mean ± std
+    ablation_table = pd.DataFrame()
+    for col in metric_cols:
+        ablation_table[f"{col}"] = mean_df[col].astype(str) + " ± " + std_df[col].astype(str)
+    
+    # Reset index to make algorithm a column
+    ablation_table = ablation_table.reset_index()
+
+    # Categorizing attack metrics
+    compression_metric_cols = ['jpeg90']
+    noise_metric_cols = ['noise_sigma2', 'salt_and_pepper', 'speckle']
+    filtering_metric_cols = ['blur', 'median', 'bilateral', 'non_local_means', 'motion_blur']
+    color_intensity_metric_cols = ['gamma09', 'histogram']
+    
+    # Print metrics as a table
+    print(f"---------------- Compression Metrics ----------------\n{ablation_table[['algorithm'] + compression_metric_cols]}")
+    print(f"---------------- Noise Metrics ----------------\n{ablation_table[['algorithm'] + noise_metric_cols]}")
+    print(f"---------------- Filtering Metrics ----------------\n{ablation_table[['algorithm'] + filtering_metric_cols]}")
+    print(f"---------------- Color Intensity Metrics ----------------\n{ablation_table[['algorithm'] + color_intensity_metric_cols]}")
+
 if __name__ == "__main__":
     metric_df_cols = ['Cover Image', 'Phase', 'PSNR', 'SSIM', 'MSE', 'Entropy Diff', 'NCC', 'Noise Diff', 'Histogram Dist', 'Edge Diff', 'Skewness Diff', 'Kurtosis Diff']
     metrics_df = read_csv_files(METRICS_DIR)
@@ -111,3 +140,5 @@ if __name__ == "__main__":
     print(f"---------------- Steganalysis Metrics ----------------\n{ablation_table[steg_cols]}")
 
     prepare_radar_plot(df, cols=['PSNR', 'Entropy Diff', 'Histogram Dist', 'Edge Diff', 'Chi Square', 'RS analysis'])
+
+    prepare_attack_metric_comparison("outcomes")
