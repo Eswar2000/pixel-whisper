@@ -48,8 +48,22 @@ def prepare_ablation_table(df, group_col='Phase', exclude_cols=['Image']):
     return ablation_table
 
 def prepare_radar_plot(df, cols, index='Phase'):
+    phase_map = {
+        "phase1": "LSB",
+        "phase3": "Chaotic LSB",
+        "phase4_1": "Content Aware Chaotic LSB",
+        "phase4_2": "Chaotic Channel-Adaptive LSB with Compensation",
+        "phase4_3": "Fixed-Channel LSB with Cross-Channel Compensation",
+        "phase4_4": "Edge-Chaotic LSB with Cross-Channel Compensation",
+        "phase4_5": "Adaptive Chaotic Multi-Map Embedding"
+    }
+
     radar_df = df.copy()
+    radar_df = radar_df[radar_df[index] != 'phase2'] # Phase 2 is encryption of data and embedding
     radar_df = radar_df[[index] + cols]
+
+    # Better plotting experience with proper legend
+    radar_df[index] = radar_df[index].map(phase_map)
 
     mean_df = radar_df.groupby(index)[cols].mean()
 
@@ -62,7 +76,7 @@ def prepare_radar_plot(df, cols, index='Phase'):
     angles += angles[:1]  # complete the loop
 
     # --- Step 4: Plot ---
-    fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(polar=True))
+    fig, ax = plt.subplots(figsize=(16, 12), subplot_kw=dict(polar=True))
 
     # Plot each algorithm
     for idx, row in normalized_df.iterrows():
