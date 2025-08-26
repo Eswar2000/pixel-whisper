@@ -12,3 +12,4 @@ pandas
 scikit-learn
 jinja2
 reedsolo
+tabulate

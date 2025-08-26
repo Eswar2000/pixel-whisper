@@ -2,13 +2,21 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from math import pi
 import glob
-from sklearn.preprocessing import MinMaxScaler
 
 METRICS_DIR = "summary"
 STEGANALYSIS_DIR = "results"
 PLOTS_DIR = "images/plot"
+
+PHASE_MAP = {
+        "phase1": "LSB",
+        "phase3": "Chaotic LSB",
+        "phase4_1": "Content Aware Chaotic LSB",
+        "phase4_2": "Chaotic Channel-Adaptive LSB with Compensation",
+        "phase4_3": "Fixed-Channel LSB with Cross-Channel Compensation",
+        "phase4_4": "Edge-Chaotic LSB with Cross-Channel Compensation",
+        "phase4_5": "Adaptive Chaotic Multi-Map Embedding"
+    }
 
 def read_csv_files(dir):
     csv_files = glob.glob(os.path.join(dir, "*.csv"))
@@ -30,12 +38,13 @@ def merge_dataframes(df1, df2):
 
 def prepare_ablation_table(df, group_col='Phase', exclude_cols=['Image']):
     df_abl = df.copy()
+    df_abl = df_abl[df_abl[group_col] != 'phase2'] # Phase 2 is encryption of data and embedding
     # Get metric columns (all numeric columns except excluded ones)
     metric_cols = [col for col in df_abl.columns if col not in exclude_cols and pd.api.types.is_numeric_dtype(df_abl[col])]
 
     # Calculate mean and std for each metric grouped by algorithm
     mean_df = df_abl.groupby(group_col)[metric_cols].mean().round(5)
-    std_df = df_abl.groupby(group_col)[metric_cols].std().round(6)
+    std_df = df_abl.groupby(group_col)[metric_cols].std().round(7)
     
     # Create formatted table with mean ± std
     ablation_table = pd.DataFrame()
@@ -48,22 +57,12 @@ def prepare_ablation_table(df, group_col='Phase', exclude_cols=['Image']):
     return ablation_table
 
 def prepare_radar_plot(df, cols, index='Phase'):
-    phase_map = {
-        "phase1": "LSB",
-        "phase3": "Chaotic LSB",
-        "phase4_1": "Content Aware Chaotic LSB",
-        "phase4_2": "Chaotic Channel-Adaptive LSB with Compensation",
-        "phase4_3": "Fixed-Channel LSB with Cross-Channel Compensation",
-        "phase4_4": "Edge-Chaotic LSB with Cross-Channel Compensation",
-        "phase4_5": "Adaptive Chaotic Multi-Map Embedding"
-    }
-
     radar_df = df.copy()
     radar_df = radar_df[radar_df[index] != 'phase2'] # Phase 2 is encryption of data and embedding
     radar_df = radar_df[[index] + cols]
 
     # Better plotting experience with proper legend
-    radar_df[index] = radar_df[index].map(phase_map)
+    radar_df[index] = radar_df[index].map(PHASE_MAP)
 
     mean_df = radar_df.groupby(index)[cols].mean()
 
@@ -76,7 +75,7 @@ def prepare_radar_plot(df, cols, index='Phase'):
     angles += angles[:1]  # complete the loop
 
     # --- Step 4: Plot ---
-    fig, ax = plt.subplots(figsize=(16, 12), subplot_kw=dict(polar=True))
+    fig, ax = plt.subplots(figsize=(16, 10), subplot_kw=dict(polar=True))
 
     # Plot each algorithm
     for idx, row in normalized_df.iterrows():
@@ -104,8 +103,8 @@ def prepare_attack_metric_comparison(dir, distinct_cols = ['image_name', 'algori
     metric_cols = [col for col in df.columns if col not in distinct_cols]
 
     # Calculate mean and std for each metric grouped by algorithm
-    mean_df = df.groupby(['algorithm'])[metric_cols].mean().round(5)
-    std_df = df.groupby(['algorithm'])[metric_cols].std().round(5)
+    mean_df = df.groupby(['algorithm'])[metric_cols].mean().round(6)
+    std_df = df.groupby(['algorithm'])[metric_cols].std().round(6)
 
     # Create formatted table with mean ± std
     ablation_table = pd.DataFrame()
@@ -122,10 +121,10 @@ def prepare_attack_metric_comparison(dir, distinct_cols = ['image_name', 'algori
     color_intensity_metric_cols = ['gamma09', 'histogram']
     
     # Print metrics as a table
-    print(f"---------------- Compression Metrics ----------------\n{ablation_table[['algorithm'] + compression_metric_cols]}")
-    print(f"---------------- Noise Metrics ----------------\n{ablation_table[['algorithm'] + noise_metric_cols]}")
-    print(f"---------------- Filtering Metrics ----------------\n{ablation_table[['algorithm'] + filtering_metric_cols]}")
-    print(f"---------------- Color Intensity Metrics ----------------\n{ablation_table[['algorithm'] + color_intensity_metric_cols]}")
+    print(f"---------------- Compression Metrics ----------------\n{ablation_table[['algorithm'] + compression_metric_cols].to_markdown()}")
+    print(f"---------------- Noise Metrics ----------------\n{ablation_table[['algorithm'] + noise_metric_cols].to_markdown()}")
+    print(f"---------------- Filtering Metrics ----------------\n{ablation_table[['algorithm'] + filtering_metric_cols].to_markdown()}")
+    print(f"---------------- Color Intensity Metrics ----------------\n{ablation_table[['algorithm'] + color_intensity_metric_cols].to_markdown()}")
 
 if __name__ == "__main__":
     metric_df_cols = ['Cover Image', 'Phase', 'PSNR', 'SSIM', 'MSE', 'Entropy Diff', 'NCC', 'Noise Diff', 'Histogram Dist', 'Edge Diff', 'Skewness Diff', 'Kurtosis Diff']
@@ -149,9 +148,9 @@ if __name__ == "__main__":
     stat_similarity_cols = ['Phase', 'NCC', 'Noise Diff', 'Histogram Dist', 'Edge Diff', 'Skewness Diff', 'Kurtosis Diff']
     steg_cols = ['Phase', 'Primary Sets', 'Chi Square', 'Sample Pairs', 'RS analysis']
     
-    print(f"---------------- Quality Metrics ----------------\n{ablation_table[quality_metric_cols]}")
-    print(f"---------------- Statistical Similarity Metrics ----------------\n{ablation_table[stat_similarity_cols]}")
-    print(f"---------------- Steganalysis Metrics ----------------\n{ablation_table[steg_cols]}")
+    print(f"---------------- Quality Metrics ----------------\n{ablation_table[quality_metric_cols].to_markdown()}")
+    print(f"---------------- Statistical Similarity Metrics ----------------\n{ablation_table[stat_similarity_cols].to_markdown()}")
+    print(f"---------------- Steganalysis Metrics ----------------\n{ablation_table[steg_cols].to_markdown()}")
 
     prepare_radar_plot(df, cols=['PSNR', 'Entropy Diff', 'Histogram Dist', 'Edge Diff', 'Chi Square', 'RS analysis'])
 
