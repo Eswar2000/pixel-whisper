@@ -106,6 +106,21 @@ def prepare_attack_metric_comparison(dir, distinct_cols = ['image_name', 'algori
     mean_df = df.groupby(['algorithm'])[metric_cols].mean().round(6)
     std_df = df.groupby(['algorithm'])[metric_cols].std().round(6)
 
+    # Plot resilience error bar
+    plt.figure(figsize=(12, 8))
+    for algorithm in mean_df.index:
+        plt.errorbar(metric_cols, mean_df.loc[algorithm], yerr=std_df.loc[algorithm], label=algorithm, capsize=4, marker='o')
+    
+    plt.xticks(rotation=45, ha="right")
+    plt.ylabel("Bit Error Rate (BER)")
+    plt.title("Attack Resilience of Steganography Algorithms")
+    plt.legend()
+    plt.grid(True, linestyle="--", alpha=0.6)
+    plt.tight_layout()
+
+    plt.savefig('images/plot/attack_resilience.png', dpi=300)
+    plt.close()
+
     # Create formatted table with mean ± std
     ablation_table = pd.DataFrame()
     for col in metric_cols:
