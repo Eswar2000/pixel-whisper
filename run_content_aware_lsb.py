@@ -2,7 +2,7 @@ import os
 import sys
 from src.stego.chaos_content_aware_lsb import embed_message_content_aware, extract_message_content_aware
 
-DEFAULT_MESSAGE = "This is your boi Eswar!"
+DEFAULT_MESSAGE = "The quick brown fox jumps over the lazy dog"
 
 
 def run_content_aware_lsb(cover_img_path, message=DEFAULT_MESSAGE, debug = False):

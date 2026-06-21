@@ -5,7 +5,7 @@ import sys
 import run_lsb_basic, run_chaotic_encrypt_lsb, run_chaos_dynamic_lsb, run_content_aware_lsb, run_chaos_compensation, run_lsb_compensation, run_meta_compensation, run_acme, run_carq, run_steganalysis_metrics
 
 # Default secret payload used across all phases (override via CLI or main(message=...)).
-DEFAULT_MESSAGE = "This is your boi Eswar!"
+DEFAULT_MESSAGE = "The quick brown fox jumps over the lazy dog"
 
 # Regex to match all channels from chi-square output
 CHI_PATTERN = re.compile(

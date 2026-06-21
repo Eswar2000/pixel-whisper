@@ -2,7 +2,7 @@ import os
 import sys
 from src.stego.chaos_dynamic_lsb import embed_message_dynamic, extract_message_dynamic
 
-DEFAULT_MESSAGE = "This is your boi Eswar!"
+DEFAULT_MESSAGE = "The quick brown fox jumps over the lazy dog"
 
 
 def run_chaos_dynamic_lsb(cover_img_path, message=DEFAULT_MESSAGE, debug = False):

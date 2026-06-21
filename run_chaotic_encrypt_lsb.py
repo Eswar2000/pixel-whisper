@@ -4,7 +4,7 @@ import numpy as np
 from src.stego.lsb_basic import embed_message, extract_message
 from src.chaos.logistic_map import chaotic_encrypt, chaotic_decrypt
 
-DEFAULT_MESSAGE = "This is your boi Eswar!"
+DEFAULT_MESSAGE = "The quick brown fox jumps over the lazy dog"
 
 
 def text_to_bits(text):

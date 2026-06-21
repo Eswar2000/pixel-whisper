@@ -2,7 +2,7 @@ import os
 import sys
 from src.stego.lsb_basic import embed_message, extract_message
 
-DEFAULT_MESSAGE = "This is your boi Eswar!"
+DEFAULT_MESSAGE = "The quick brown fox jumps over the lazy dog"
 
 
 def run_lsb_basic(cover_img_path, message=DEFAULT_MESSAGE, debug = False):

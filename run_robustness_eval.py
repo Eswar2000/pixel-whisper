@@ -9,7 +9,7 @@ from src.stego.acme import embed_message as acme_embed, extract_message as acme_
 from src.stego.lsb_basic import embed_message as lsb_embed, extract_message as lsb_extract
 from src.test.attack import add_gaussian_noise, gaussian_blur, median_filter, bilateral_filter, non_local_means_filter, gamma_correction, jpeg_compression, salt_and_pepper_noise, speckle_noise, histogram_equalization, motion_blur, string_ber
 
-DEFAULT_MESSAGE = "This is your boi Eswar!"
+DEFAULT_MESSAGE = "The quick brown fox jumps over the lazy dog"
 
 
 def robustness_eval(cover_img_path, message=DEFAULT_MESSAGE):

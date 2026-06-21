@@ -13,7 +13,7 @@ import sys
 
 from src.stego.carq import embed_carq, extract_carq
 
-DEFAULT_MESSAGE = "This is your boi Eswar!"
+DEFAULT_MESSAGE = "The quick brown fox jumps over the lazy dog"
 DEFAULT_KEY = "carq-research-key-2026"
 
 # Phase label -> drives the stego filename (<img>_carq.png) and the CSV "Phase"
