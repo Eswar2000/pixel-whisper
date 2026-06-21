@@ -15,7 +15,8 @@ PHASE_MAP = {
         "phase4_2": "Chaotic Channel-Adaptive LSB with Compensation",
         "phase4_3": "Fixed-Channel LSB with Cross-Channel Compensation",
         "phase4_4": "Edge-Chaotic LSB with Cross-Channel Compensation",
-        "phase4_5": "Adaptive Chaotic Multi-Map Embedding"
+        "phase4_5": "Adaptive Chaotic Multi-Map Embedding",
+        "carq": "Robust Chaotic DCT-QIM (CARQ)"
     }
 
 def read_csv_files(dir):

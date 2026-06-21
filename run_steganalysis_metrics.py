@@ -22,7 +22,7 @@ def run_all_metrics(cover_path, stego_path):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python runner_phase5.py <cover_image_path> <stego_image_path>")
+        print("Usage: python run_steganalysis_metrics.py <cover_image_path> <stego_image_path>")
         sys.exit(1)
 
     cover_image = sys.argv[1]

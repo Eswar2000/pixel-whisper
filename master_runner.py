@@ -2,7 +2,7 @@ import os
 import csv
 import re
 import sys
-import run_lsb_basic, run_chaotic_encrypt_lsb, run_chaos_dynamic_lsb, run_content_aware_lsb, run_chaos_compensation, run_lsb_compensation, run_meta_compensation, run_acme, run_phase5
+import run_lsb_basic, run_chaotic_encrypt_lsb, run_chaos_dynamic_lsb, run_content_aware_lsb, run_chaos_compensation, run_lsb_compensation, run_meta_compensation, run_acme, run_carq, run_steganalysis_metrics
 
 # Default secret payload used across all phases (override via CLI or main(message=...)).
 DEFAULT_MESSAGE = "This is your boi Eswar!"
@@ -22,6 +22,7 @@ PHASE_RUNNERS = [
     ("phase4_3", run_lsb_compensation.run_lsb_compensation),
     ("phase4_4", run_meta_compensation.run_meta_compensation),
     ("phase4_5", run_acme.run_acme),
+    ("carq", run_carq.run_carq),
 ]
 
 # Paths
@@ -72,7 +73,11 @@ def main(input_src = INPUT_DIR, message = DEFAULT_MESSAGE):
 
             for phase_runner in PHASE_RUNNERS:
                 print(f"[*] Running {phase_runner[0]} on {cover_image}...")
-                metric_output = phase_runner[1](cover_path, message=message)
+                try:
+                    metric_output = phase_runner[1](cover_path, message=message)
+                except Exception as e:
+                    print(f"[!] {phase_runner[0]} failed on {cover_image}: {e}")
+                    continue
 
                 phase_name = phase_runner[0]
                 image_base_name = os.path.basename(cover_path).replace(".png", "").replace(".jpg", "").replace(".jpeg", "")
@@ -80,7 +85,7 @@ def main(input_src = INPUT_DIR, message = DEFAULT_MESSAGE):
 
                 # Run chi-square for this cover and stego
                 stego_path = os.path.join(BASE_DIR, "images", "output", stego_filename)
-                test_metrics = run_phase5.run_all_metrics(cover_path, stego_path)
+                test_metrics = run_steganalysis_metrics.run_all_metrics(cover_path, stego_path)
 
                 # Extract PSNR, SSIM, MSE, entropy diff from embedding runner output
                 psnr, ssim, mse, entropy_diff = round(metric_output['PSNR'], 4), round(metric_output['SSIM'], 4), round(metric_output['MSE'], 4), round(metric_output['Entropy Diff'], 4)
