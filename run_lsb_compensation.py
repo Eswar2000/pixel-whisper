@@ -6,7 +6,7 @@ from src.stego.lsb_compensation import embed_message, extract_message
 DEFAULT_MESSAGE = "This is your boi Eswar!"
 
 
-def run_phase4_3(cover_img_path, message=DEFAULT_MESSAGE, debug = False):
+def run_lsb_compensation(cover_img_path, message=DEFAULT_MESSAGE, debug = False):
     output_dir = os.path.join("images", "output")
 
     img_name = os.path.splitext(os.path.basename(cover_img_path))[0]
@@ -35,9 +35,9 @@ def run_phase4_3(cover_img_path, message=DEFAULT_MESSAGE, debug = False):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python run_phase4_3.py <cover_image_path> [secret_message]")
+        print("Usage: python run_lsb_compensation.py <cover_image_path> [secret_message]")
         sys.exit(1)
 
     cover_img_path = sys.argv[1]
     message = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_MESSAGE
-    run_phase4_3(cover_img_path, message=message, debug=True)
+    run_lsb_compensation(cover_img_path, message=message, debug=True)

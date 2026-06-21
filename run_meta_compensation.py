@@ -1,23 +1,23 @@
-import cv2
-import sys
 import os
-from src.stego.chaos_compensation import embed_message, extract_message
+import sys
+from src.stego.meta_compensation import embed_message, extract_message
 
 DEFAULT_MESSAGE = "This is your boi Eswar!"
 
 
-def run_phase4_2(cover_img_path, message=DEFAULT_MESSAGE, debug = False):
+def run_meta_compensation(cover_img_path, message=DEFAULT_MESSAGE, debug = False):
     output_dir = os.path.join("images", "output")
 
     img_name = os.path.splitext(os.path.basename(cover_img_path))[0]
-    stego_img = os.path.join(output_dir, f"{img_name}_phase4_2.png")
+    stego_img_path = os.path.join(output_dir, f"{img_name}_phase4_4.png")
+    meta_file = "images/output/meta/meta_phase4_4.json"
     secret_message = message
-    seed = "sussy-chungus"
+    
 
-    # Embed
+    # Embed with context-aware method
     if debug:
         print("[*] Embedding message...")
-    metrics = embed_message(cover_img_path, secret_message, stego_img, seed)
+    metrics = embed_message(cover_img_path, secret_message, stego_img_path, meta_file, method="super_model", seed_str="sussy-chungus", logistic_seed=0.54321, logistic_r=3.99, alpha=0.7)
     if debug:
         print("[+] Metrics:")
         for k, v in metrics.items():
@@ -26,20 +26,19 @@ def run_phase4_2(cover_img_path, message=DEFAULT_MESSAGE, debug = False):
         else:
             print(f"    {k}: {v}")
 
-    # Extract
+    # Extract message
     if debug:
         print("[*] Extracting message...")
-    extracted = extract_message(stego_img, len(secret_message), seed)
+    extracted = extract_message(stego_img_path, meta_file)
     if debug:
         print("[+] Extracted message:", extracted)
     return metrics
 
 if __name__ == "__main__":
-    # Expect the cover image path as an argument, with an optional secret message
     if len(sys.argv) < 2:
-        print("Usage: python run_phase4_2.py <cover_image_path> [secret_message]")
+        print("Usage: python run_meta_compensation.py <cover_image_path> [secret_message]")
         sys.exit(1)
 
     cover_img_path = sys.argv[1]
     message = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_MESSAGE
-    run_phase4_2(cover_img_path, message=message, debug=True)
+    run_meta_compensation(cover_img_path, message=message, debug=True)

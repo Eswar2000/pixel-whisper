@@ -2,7 +2,7 @@ import os
 import csv
 import re
 import sys
-import run_phase1, run_phase2, run_phase3, run_phase4_1, run_phase4_2, run_phase4_3, run_phase4_4, run_phase4_5, run_phase5
+import run_lsb_basic, run_chaotic_encrypt_lsb, run_chaos_dynamic_lsb, run_content_aware_lsb, run_chaos_compensation, run_lsb_compensation, run_meta_compensation, run_acme, run_phase5
 
 # Default secret payload used across all phases (override via CLI or main(message=...)).
 DEFAULT_MESSAGE = "This is your boi Eswar!"
@@ -14,14 +14,14 @@ CHI_PATTERN = re.compile(
 
 # List of runner scripts for each phase
 PHASE_RUNNERS = [
-    ("phase1", run_phase1.run_phase1),
-    ("phase2", run_phase2.run_phase2),
-    ("phase3", run_phase3.run_phase3),
-    ("phase4_1", run_phase4_1.run_phase4_1),
-    ("phase4_2", run_phase4_2.run_phase4_2),
-    ("phase4_3", run_phase4_3.run_phase4_3),
-    ("phase4_4", run_phase4_4.run_phase4_4),
-    ("phase4_5", run_phase4_5.run_phase_4_5),
+    ("phase1", run_lsb_basic.run_lsb_basic),
+    ("phase2", run_chaotic_encrypt_lsb.run_chaotic_encrypt_lsb),
+    ("phase3", run_chaos_dynamic_lsb.run_chaos_dynamic_lsb),
+    ("phase4_1", run_content_aware_lsb.run_content_aware_lsb),
+    ("phase4_2", run_chaos_compensation.run_chaos_compensation),
+    ("phase4_3", run_lsb_compensation.run_lsb_compensation),
+    ("phase4_4", run_meta_compensation.run_meta_compensation),
+    ("phase4_5", run_acme.run_acme),
 ]
 
 # Paths

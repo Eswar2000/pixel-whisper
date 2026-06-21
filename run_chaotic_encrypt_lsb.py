@@ -14,7 +14,7 @@ def bits_to_text(bits):
     chars = [chr(int(''.join(str(bit) for bit in bits[i:i+8]), 2)) for i in range(0, len(bits), 8)]
     return ''.join(chars)
 
-def run_phase2(cover_img_path, message=DEFAULT_MESSAGE, debug = False):
+def run_chaotic_encrypt_lsb(cover_img_path, message=DEFAULT_MESSAGE, debug = False):
     output_dir = os.path.join("images", "output")
 
     img_name = os.path.splitext(os.path.basename(cover_img_path))[0]
@@ -54,9 +54,9 @@ def run_phase2(cover_img_path, message=DEFAULT_MESSAGE, debug = False):
 if __name__ == "__main__":
     # Expect the cover image path as an argument, with an optional secret message
     if len(sys.argv) < 2:
-        print("Usage: python run_phase2.py <cover_image_path> [secret_message]")
+        print("Usage: python run_chaotic_encrypt_lsb.py <cover_image_path> [secret_message]")
         sys.exit(1)
 
     cover_img_path = sys.argv[1]
     message = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_MESSAGE
-    run_phase2(cover_img_path, message=message, debug=True)
+    run_chaotic_encrypt_lsb(cover_img_path, message=message, debug=True)
