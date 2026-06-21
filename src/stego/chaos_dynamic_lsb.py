@@ -48,7 +48,7 @@ def embed_message_dynamic(cover_path, message, output_image_path, meta_path, see
     # Embed message bits
     bits = np.unpackbits(np.frombuffer(message_bytes, dtype=np.uint8))
     for i, bit in enumerate(bits):
-        flat_img[pixel_indices[i]] = (flat_img[pixel_indices[i]] & ~1) | bit
+        flat_img[pixel_indices[i]] = (flat_img[pixel_indices[i]] & 0xFE) | bit
 
     # Save stego image
     stego_img = flat_img.reshape(image.shape)

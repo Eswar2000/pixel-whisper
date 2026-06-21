@@ -28,7 +28,7 @@ def bit_set(value, bit_index, bit):
     if bit == 1:
         return value | (1 << bit_index)
     else:
-        return value & ~(1 << bit_index)
+        return value & (0xFF ^ (1 << bit_index))
 
 def embed_bit_in_pixel(pixel, bit, embed_channel, comp_channel):
     # pixel is (R,G,B)

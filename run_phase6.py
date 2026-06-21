@@ -1,5 +1,6 @@
 import numpy as np
 import os
+import sys
 import cv2
 import pandas as pd
 from pathlib import Path
@@ -8,12 +9,14 @@ from src.stego.acme import embed_message as acme_embed, extract_message as acme_
 from src.stego.lsb_basic import embed_message as lsb_embed, extract_message as lsb_extract
 from src.test.attack import add_gaussian_noise, gaussian_blur, median_filter, bilateral_filter, non_local_means_filter, gamma_correction, jpeg_compression, salt_and_pepper_noise, speckle_noise, histogram_equalization, motion_blur, string_ber
 
+DEFAULT_MESSAGE = "This is your boi Eswar!"
 
-def robustness_eval(cover_img_path):
+
+def robustness_eval(cover_img_path, message=DEFAULT_MESSAGE):
 
     results = {}
     img_name = os.path.splitext(os.path.basename(cover_img_path))[0]
-    secret_message = "This is your boi Eswar!"
+    secret_message = message
     stego_img_path_acme = f"images/output/attacks/{img_name}_acme_attack.png"
     stego_img_path_lsb = f"images/output/attacks/{img_name}_lsb_attack.png"
     meta_file_acme = f"images/output/meta/{img_name}_meta_attack.json"
@@ -54,7 +57,7 @@ def robustness_eval(cover_img_path):
         results[algo] = attack_metric
     return results
 
-def process_directory(input_dir):
+def process_directory(input_dir, message=DEFAULT_MESSAGE):
     """
     Process all images in input directory and save results to CSV
     """
@@ -73,7 +76,7 @@ def process_directory(input_dir):
     for img_path in tqdm(image_files, desc="Processing images"):
         try:
             # Run robustness evaluation
-            results = robustness_eval(str(img_path))
+            results = robustness_eval(str(img_path), message=message)
             
             # Format results for CSV
             for algo, attack_metrics in results.items():
@@ -95,8 +98,10 @@ def process_directory(input_dir):
     print(f"\nResults saved to {csv_path}")
 
 if __name__ == "__main__":
-    # Example assuming acme_embed/acme_extract exist
-    process_directory("images/input/googleapi_130_160/temp")
+    # Optional args: [image_src_path] [secret_message]
+    src_dir = sys.argv[1] if len(sys.argv) > 1 else "images/input/googleapi_130_160/temp"
+    msg = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_MESSAGE
+    process_directory(src_dir, message=msg)
 
     # for algo, attack_metrics in results.items():
     #     for attack, ber in attack_metrics.items():

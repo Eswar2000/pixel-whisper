@@ -3,12 +3,15 @@ import os
 import sys
 from src.stego.lsb_compensation import embed_message, extract_message
 
-def run_phase4_3(cover_img_path, debug = False):
+DEFAULT_MESSAGE = "This is your boi Eswar!"
+
+
+def run_phase4_3(cover_img_path, message=DEFAULT_MESSAGE, debug = False):
     output_dir = os.path.join("images", "output")
 
     img_name = os.path.splitext(os.path.basename(cover_img_path))[0]
     stego_img_path = os.path.join(output_dir, f"{img_name}_phase4_3.png")
-    secret_message = "This is your boi Eswar!"
+    secret_message = message
 
     # Embed
     if debug:
@@ -31,9 +34,10 @@ def run_phase4_3(cover_img_path, debug = False):
     return metrics
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python runner_phase4_3.py <cover_image_path>")
+    if len(sys.argv) < 2:
+        print("Usage: python run_phase4_3.py <cover_image_path> [secret_message]")
         sys.exit(1)
 
     cover_img_path = sys.argv[1]
-    run_phase4_3(cover_img_path, debug=True)
+    message = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_MESSAGE
+    run_phase4_3(cover_img_path, message=message, debug=True)

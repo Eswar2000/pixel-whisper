@@ -2,12 +2,15 @@ import os
 import sys
 from src.stego.lsb_basic import embed_message, extract_message
 
-def run_phase1(cover_img_path, debug = False):
+DEFAULT_MESSAGE = "This is your boi Eswar!"
+
+
+def run_phase1(cover_img_path, message=DEFAULT_MESSAGE, debug = False):
     output_dir = os.path.join("images", "output")
 
     img_name = os.path.splitext(os.path.basename(cover_img_path))[0]
     stego_img = os.path.join(output_dir, f"{img_name}_phase1.png")
-    secret_message = "This is your boi Eswar!"
+    secret_message = message
 
     if debug:
         print("[*] Embedding message...")
@@ -28,10 +31,11 @@ def run_phase1(cover_img_path, debug = False):
 
 
 if __name__ == "__main__":
-    # Expect the cover image path as an argument
-    if len(sys.argv) != 2:
-        print("Usage: python runner_phase1.py <cover_image_path>")
+    # Expect the cover image path as an argument, with an optional secret message
+    if len(sys.argv) < 2:
+        print("Usage: python run_phase1.py <cover_image_path> [secret_message]")
         sys.exit(1)
 
     cover_img_path = sys.argv[1]
-    run_phase1(cover_img_path, debug=True)
+    message = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_MESSAGE
+    run_phase1(cover_img_path, message=message, debug=True)

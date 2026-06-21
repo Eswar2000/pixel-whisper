@@ -28,7 +28,7 @@ def embed_message(cover_image_path, message, stego_image_path):
     # Flatten and modify LSB
     flat = arr.flatten()
     for i, bit in enumerate(bits):
-        flat[i] = (flat[i] & ~1) | bit  # clear last bit, set to message bit
+        flat[i] = (flat[i] & 0xFE) | bit  # clear last bit, set to message bit
 
     arr_stego = flat.reshape(arr.shape)
     stego_img = Image.fromarray(arr_stego.astype(np.uint8))

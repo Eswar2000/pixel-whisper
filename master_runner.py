@@ -4,6 +4,9 @@ import re
 import sys
 import run_phase1, run_phase2, run_phase3, run_phase4_1, run_phase4_2, run_phase4_3, run_phase4_4, run_phase4_5, run_phase5
 
+# Default secret payload used across all phases (override via CLI or main(message=...)).
+DEFAULT_MESSAGE = "This is your boi Eswar!"
+
 # Regex to match all channels from chi-square output
 CHI_PATTERN = re.compile(
     r"(Red|Green|Blue):\s*Image 1:\s*([-+]?\d*\.\d+|\d+),\s*Image 2:\s*([-+]?\d*\.\d+|\d+)\s*=>\s*(.+)"
@@ -48,7 +51,7 @@ def format_detectability(status, diff):
     else:
         return f"{status} by {diff}"
 
-def main(input_src = INPUT_DIR):
+def main(input_src = INPUT_DIR, message = DEFAULT_MESSAGE):
     # Prepare CSV
     with open(OUTPUT_CSV, "w", newline="") as f:
         writer = csv.writer(f)
@@ -69,7 +72,7 @@ def main(input_src = INPUT_DIR):
 
             for phase_runner in PHASE_RUNNERS:
                 print(f"[*] Running {phase_runner[0]} on {cover_image}...")
-                metric_output = phase_runner[1](cover_path)
+                metric_output = phase_runner[1](cover_path, message=message)
 
                 phase_name = phase_runner[0]
                 image_base_name = os.path.basename(cover_path).replace(".png", "").replace(".jpg", "").replace(".jpeg", "")
@@ -95,9 +98,10 @@ def main(input_src = INPUT_DIR):
                 ])
 
 if __name__ == "__main__":
-    # Expect the cover image path as an argument
-    if len(sys.argv) != 2:
-        print("Usage: python master_runner.py <image_src_path>")
+    # Optional args: <image_src_path> [secret_message]
+    if len(sys.argv) < 2:
+        print("Usage: python master_runner.py <image_src_path> [secret_message]")
         main()
     else:
-        main(sys.argv[1])
+        msg = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_MESSAGE
+        main(sys.argv[1], message=msg)

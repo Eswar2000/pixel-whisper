@@ -63,7 +63,7 @@ def embed_message_content_aware(cover_path, message, output_image_path, meta_pat
     # Embed bits into flattened image's LSB at pixel_indices
     for i, bit in enumerate(bits):
         idx = pixel_indices[i]
-        flat_img[idx] = (flat_img[idx] & ~1) | bit
+        flat_img[idx] = (flat_img[idx] & 0xFE) | bit
 
     # Reshape and save stego image
     stego_img = flat_img.reshape(image.shape)
